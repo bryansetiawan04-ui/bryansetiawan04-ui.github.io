@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dompet Pribadi</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script defer src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script defer src="app.js"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <i data-lucide="wallet-cards"></i>
+          </div>
+          <div>
+            <h1>Dompet Pribadi</h1>
+            <p id="todayLabel"></p>
+          </div>
+        </div>
+
+        <div class="top-actions" aria-label="Aksi data">
+          <button class="ghost-button" id="exportCsvButton" type="button">
+            <i data-lucide="table"></i>
+            <span>CSV</span>
+          </button>
+          <button class="ghost-button" id="exportJsonButton" type="button">
+            <i data-lucide="download"></i>
+            <span>JSON</span>
+          </button>
+          <label class="ghost-button file-action" for="importJsonFile">
+            <i data-lucide="upload"></i>
+            <span>Import</span>
+          </label>
+          <input id="importJsonFile" class="sr-only" type="file" accept="application/json,.json" />
+        </div>
+      </header>
+
+      <main class="workspace">
+        <section class="summary-grid" aria-label="Ringkasan keuangan">
+          <article class="summary-card balance-card">
+            <div class="summary-icon" aria-hidden="true"><i data-lucide="banknote"></i></div>
+            <div>
+              <span>Saldo</span>
+              <strong id="balanceValue">Rp0</strong>
+            </div>
+          </article>
+          <article class="summary-card income-card">
+            <div class="summary-icon" aria-hidden="true"><i data-lucide="trending-up"></i></div>
+            <div>
+              <span>Pemasukan bulan ini</span>
+              <strong id="incomeValue">Rp0</strong>
+            </div>
+          </article>
+          <article class="summary-card expense-card">
+            <div class="summary-icon" aria-hidden="true"><i data-lucide="trending-down"></i></div>
+            <div>
+              <span>Pengeluaran bulan ini</span>
+              <strong id="expenseValue">Rp0</strong>
+            </div>
+          </article>
+          <article class="summary-card net-card">
+            <div class="summary-icon" aria-hidden="true"><i data-lucide="activity"></i></div>
+            <div>
+              <span>Arus kas bulan ini</span>
+              <strong id="cashflowValue">Rp0</strong>
+            </div>
+          </article>
+        </section>
+
+        <section class="primary-grid">
+          <form class="panel form-panel" id="transactionForm">
+            <header class="panel-header">
+              <div>
+                <h2>Transaksi</h2>
+                <p id="formModeLabel">Tambah transaksi baru</p>
+              </div>
+              <button class="icon-button" id="resetFormButton" type="button" title="Bersihkan form" aria-label="Bersihkan form">
+                <i data-lucide="rotate-ccw"></i>
+              </button>
+            </header>
+
+            <input id="editingId" type="hidden" />
+
+            <div class="segmented" aria-label="Jenis transaksi">
+              <button class="segment active" type="button" data-transaction-type="expense">
+                <i data-lucide="minus-circle"></i>
+                <span>Pengeluaran</span>
+              </button>
+              <button class="segment" type="button" data-transaction-type="income">
+                <i data-lucide="plus-circle"></i>
+                <span>Pemasukan</span>
+              </button>
+            </div>
+
+            <div class="field-grid">
+              <label>
+                <span>Nominal</span>
+                <input id="amountInput" type="number" inputmode="numeric" min="0" step="100" placeholder="125000" required />
+              </label>
+              <label>
+                <span>Tanggal</span>
+                <input id="dateInput" type="date" required />
+              </label>
+              <label>
+                <span>Kategori</span>
+                <select id="categoryInput" required></select>
+              </label>
+              <label>
+                <span>Akun</span>
+                <select id="accountInput">
+                  <option value="Tunai">Tunai</option>
+                  <option value="Bank">Bank</option>
+                  <option value="E-Wallet">E-Wallet</option>
+                  <option value="Kartu Kredit">Kartu Kredit</option>
+                </select>
+              </label>
+            </div>
+
+            <label>
+              <span>Merchant / sumber</span>
+              <input id="merchantInput" type="text" placeholder="Nama toko, klien, atau sumber dana" />
+            </label>
+
+            <label>
+              <span>Catatan</span>
+              <textarea id="noteInput" rows="3" placeholder="Detail transaksi"></textarea>
+            </label>
+
+            <button class="primary-button" type="submit">
+              <i data-lucide="save"></i>
+              <span>Simpan transaksi</span>
+            </button>
+          </form>
+
+          <section class="panel receipt-panel">
+            <header class="panel-header">
+              <div>
+                <h2>Bill Scanner</h2>
+                <p id="scanStatus">Siap membaca bill</p>
+              </div>
+              <div class="scan-badge" id="scanProgress">0%</div>
+            </header>
+
+            <div class="receipt-layout">
+              <label class="upload-zone" for="receiptFile">
+                <input id="receiptFile" type="file" accept="image/*,.txt" />
+                <span class="upload-icon" aria-hidden="true"><i data-lucide="receipt-text"></i></span>
+                <strong>Pilih bill</strong>
+                <small>JPG, PNG, atau TXT</small>
+              </label>
+
+              <div class="receipt-preview">
+                <img id="receiptPreview" alt="Preview bill" />
+                <div id="emptyPreview" class="empty-preview">
+                  <i data-lucide="image"></i>
+                </div>
+              </div>
+            </div>
+
+            <textarea id="receiptText" rows="7" placeholder="Teks hasil scan atau teks bill"></textarea>
+
+            <div class="button-row">
+              <button class="secondary-button" id="scanReceiptButton" type="button" disabled>
+                <i data-lucide="scan-text"></i>
+                <span>Scan gambar</span>
+              </button>
+              <button class="secondary-button" id="parseReceiptButton" type="button">
+                <i data-lucide="sparkles"></i>
+                <span>Isi otomatis</span>
+              </button>
+            </div>
+
+            <div class="detected-box hidden" id="detectedBox">
+              <div>
+                <span id="detectedType">Pengeluaran</span>
+                <strong id="detectedAmount">Rp0</strong>
+              </div>
+              <dl>
+                <div>
+                  <dt>Tanggal</dt>
+                  <dd id="detectedDate">-</dd>
+                </div>
+                <div>
+                  <dt>Kategori</dt>
+                  <dd id="detectedCategory">-</dd>
+                </div>
+                <div>
+                  <dt>Merchant</dt>
+                  <dd id="detectedMerchant">-</dd>
+                </div>
+              </dl>
+              <div class="button-row">
+                <button class="ghost-button" id="fillDetectedButton" type="button">
+                  <i data-lucide="file-pen-line"></i>
+                  <span>Masuk form</span>
+                </button>
+                <button class="primary-button" id="saveDetectedButton" type="button">
+                  <i data-lucide="check"></i>
+                  <span>Simpan otomatis</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        </section>
+
+        <section class="insights-grid">
+          <section class="panel chart-panel">
+            <header class="panel-header">
+              <div>
+                <h2>Arus Kas</h2>
+                <p>6 bulan terakhir</p>
+              </div>
+              <i data-lucide="bar-chart-3" aria-hidden="true"></i>
+            </header>
+            <canvas id="monthlyChart" width="900" height="320"></canvas>
+          </section>
+
+          <section class="panel category-panel">
+            <header class="panel-header">
+              <div>
+                <h2>Kategori</h2>
+                <p>Pengeluaran bulan ini</p>
+              </div>
+              <i data-lucide="pie-chart" aria-hidden="true"></i>
+            </header>
+            <div id="categoryBreakdown" class="category-list"></div>
+          </section>
+        </section>
+
+        <section class="panel transactions-panel">
+          <header class="panel-header table-header">
+            <div>
+              <h2>Riwayat</h2>
+              <p id="transactionCount">0 transaksi</p>
+            </div>
+            <div class="filters">
+              <select id="typeFilter" aria-label="Filter jenis">
+                <option value="all">Semua</option>
+                <option value="expense">Pengeluaran</option>
+                <option value="income">Pemasukan</option>
+              </select>
+              <select id="monthFilter" aria-label="Filter bulan">
+                <option value="all">Semua bulan</option>
+              </select>
+              <label class="search-field">
+                <i data-lucide="search" aria-hidden="true"></i>
+                <input id="searchInput" type="search" placeholder="Cari transaksi" />
+              </label>
+            </div>
+          </header>
+
+          <div class="transaction-list" id="transactionList"></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
