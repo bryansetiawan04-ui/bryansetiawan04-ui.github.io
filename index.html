@@ -1,0 +1,233 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#116149">
+    <title>Finance Pribadi</title>
+    <link rel="icon" href="icon.svg" type="image/svg+xml">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <div id="authView" class="auth-layout" hidden>
+      <section class="auth-panel" aria-labelledby="authTitle">
+        <div class="brand-row">
+          <img class="brand-mark" src="icon.svg" alt="">
+          <div>
+            <p class="eyebrow">Catatan pribadi</p>
+            <h1 id="authTitle">Finance Pribadi</h1>
+          </div>
+        </div>
+
+        <p id="authModeText" class="auth-copy"></p>
+
+        <form id="authForm" class="form-stack">
+          <label>
+            <span>Username</span>
+            <input id="authUsername" name="username" autocomplete="username" required>
+          </label>
+          <label>
+            <span>Password</span>
+            <input id="authPassword" name="password" type="password" autocomplete="current-password" minlength="6" required>
+          </label>
+          <label id="confirmPasswordWrap">
+            <span>Ulangi password</span>
+            <input id="authPasswordConfirm" name="confirmPassword" type="password" autocomplete="new-password" minlength="6">
+          </label>
+          <button id="authSubmit" class="primary-button" type="submit">Masuk</button>
+        </form>
+
+        <p id="authMessage" class="inline-message" role="status" aria-live="polite"></p>
+        <button id="resetLocalButton" class="text-button danger-text" type="button" hidden>Reset data lokal</button>
+      </section>
+    </div>
+
+    <div id="appView" class="app-shell" hidden>
+      <header class="topbar">
+        <div class="brand-row compact">
+          <img class="brand-mark small" src="icon.svg" alt="">
+          <div>
+            <p class="eyebrow">Finance Pribadi</p>
+            <h1>Dashboard Keuangan</h1>
+          </div>
+        </div>
+        <div class="top-actions">
+          <span id="monthPill" class="month-pill"></span>
+          <button id="exportBackupButton" class="ghost-button" type="button">Export Backup</button>
+          <label class="ghost-button file-action">
+            Import Backup
+            <input id="importBackupInput" type="file" accept="application/json,.json">
+          </label>
+          <button id="logoutButton" class="ghost-button" type="button">Logout</button>
+        </div>
+      </header>
+
+      <main>
+        <section class="summary-band" aria-labelledby="summaryTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Bulan berjalan</p>
+              <h2 id="summaryTitle">Ringkasan bulan ini</h2>
+            </div>
+            <p id="summaryMeta" class="muted"></p>
+          </div>
+          <div id="summaryCards" class="summary-grid"></div>
+        </section>
+
+        <section class="workspace-grid">
+          <div class="panel" aria-labelledby="recordFormTitle">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Input</p>
+                <h2 id="recordFormTitle">Tambah catatan</h2>
+              </div>
+              <button id="cancelEditButton" class="text-button" type="button" hidden>Batal edit</button>
+            </div>
+
+            <form id="recordForm" class="record-form">
+              <div class="field-grid two">
+                <label>
+                  <span>Tanggal</span>
+                  <input id="recordDate" name="date" type="date" required>
+                </label>
+                <label>
+                  <span>Nominal</span>
+                  <input id="recordAmount" name="amount" type="number" min="0" step="1000" inputmode="numeric" placeholder="0" required>
+                </label>
+              </div>
+
+              <fieldset class="segmented-field">
+                <legend>Jenis catatan</legend>
+                <div class="segmented-control">
+                  <label>
+                    <input type="radio" name="type" value="expense" checked>
+                    <span>Pengeluaran</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="type" value="income">
+                    <span>Pendapatan</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="type" value="saving">
+                    <span>Tabungan</span>
+                  </label>
+                  <label>
+                    <input type="radio" name="type" value="extra">
+                    <span>Tambahan</span>
+                  </label>
+                </div>
+              </fieldset>
+
+              <label>
+                <span>Nama catatan</span>
+                <input id="recordTitle" name="title" maxlength="80" placeholder="Misal: Belanja bulanan" required>
+              </label>
+
+              <div class="field-grid two">
+                <label>
+                  <span>Kategori</span>
+                  <input id="recordCategory" name="category" maxlength="40" placeholder="Makan, transport, gaji">
+                </label>
+                <label>
+                  <span>Foto nota / barang</span>
+                  <input id="recordPhoto" name="photo" type="file" accept="image/*">
+                </label>
+              </div>
+
+              <label>
+                <span>Catatan</span>
+                <textarea id="recordNote" name="note" rows="3" maxlength="240" placeholder="Detail singkat"></textarea>
+              </label>
+
+              <div id="photoPreview" class="photo-preview" hidden>
+                <img id="photoPreviewImage" alt="Preview foto">
+                <div>
+                  <strong id="photoPreviewName"></strong>
+                  <p id="photoPreviewMeta" class="muted"></p>
+                  <button id="removePhotoButton" class="text-button danger-text" type="button">Hapus foto</button>
+                </div>
+              </div>
+
+              <button id="saveRecordButton" class="primary-button" type="submit">Simpan catatan</button>
+            </form>
+          </div>
+
+          <div class="panel" aria-labelledby="reportTitle">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Laporan</p>
+                <h2 id="reportTitle">Invoice keuangan</h2>
+              </div>
+            </div>
+
+            <form id="reportForm" class="record-form">
+              <div class="field-grid two">
+                <label>
+                  <span>Dari tanggal</span>
+                  <input id="reportStart" type="date" required>
+                </label>
+                <label>
+                  <span>Sampai tanggal</span>
+                  <input id="reportEnd" type="date" required>
+                </label>
+              </div>
+              <p class="muted">Range maksimal 1 tahun per laporan.</p>
+              <div class="button-row">
+                <button id="previewReportButton" class="ghost-button" type="button">Preview</button>
+                <button class="primary-button" type="submit">Download laporan</button>
+              </div>
+            </form>
+            <p id="reportMessage" class="inline-message" role="status" aria-live="polite"></p>
+          </div>
+        </section>
+
+        <section class="panel history-panel" aria-labelledby="historyTitle">
+          <div class="section-heading history-heading">
+            <div>
+              <p class="eyebrow">History</p>
+              <h2 id="historyTitle">Riwayat catatan</h2>
+            </div>
+            <div class="history-filters">
+              <label>
+                <span>Bulan</span>
+                <select id="historyMonth">
+                  <option value="all">Semua</option>
+                  <option value="01">Januari</option>
+                  <option value="02">Februari</option>
+                  <option value="03">Maret</option>
+                  <option value="04">April</option>
+                  <option value="05">Mei</option>
+                  <option value="06">Juni</option>
+                  <option value="07">Juli</option>
+                  <option value="08">Agustus</option>
+                  <option value="09">September</option>
+                  <option value="10">Oktober</option>
+                  <option value="11">November</option>
+                  <option value="12">Desember</option>
+                </select>
+              </label>
+              <label>
+                <span>Tahun</span>
+                <select id="historyYear"></select>
+              </label>
+            </div>
+          </div>
+
+          <p id="historyTotal" class="history-total"></p>
+          <div id="transactionList" class="transaction-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="photoDialog" class="photo-dialog">
+      <button id="closePhotoDialog" class="dialog-close" type="button" aria-label="Tutup">x</button>
+      <img id="dialogPhotoImage" alt="Foto catatan">
+      <p id="dialogPhotoCaption"></p>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
